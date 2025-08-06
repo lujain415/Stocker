@@ -1,0 +1,12 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<h1>Sign In</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="username" placeholder="Username" required class="form-control mb-2">
+    <input type="password" name="password" placeholder="Password" required class="form-control mb-2">
+    <button type="submit" class="btn btn-success">Login</button>
+</form>
+{% endblock %}

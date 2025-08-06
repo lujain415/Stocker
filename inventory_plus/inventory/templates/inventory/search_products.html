@@ -1,0 +1,14 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<h1>Search Results</h1>
+
+{% if products %}
+<p>{{ products|length }} result(s) found for "{{ request.GET.search }}"</p>
+{% include 'inventory/all_products.html' %}
+{% else %}
+<p class="alert alert-warning">No results found for "{{ request.GET.search }}"</p>
+{% endif %}
+{% endblock %}

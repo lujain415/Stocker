@@ -1,0 +1,45 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Update {{ product.name }}{% endblock %}
+
+{% block content %}
+<h1>Update Product</h1>
+
+<form method="post" enctype="multipart/form-data" class="d-flex flex-column gap-2">
+    {% csrf_token %}
+    <input type="text" name="name" class="form-control" value="{{ product.name }}" required />
+    <textarea name="description" class="form-control">{{ product.description }}</textarea>
+    <input type="number" name="quantity" class="form-control" value="{{ product.quantity }}" required />
+    <input type="date" name="expiry_date" class="form-control" value="{{ product.expiry_date|date:'Y-m-d' }}" />
+
+    <select name="category" class="form-select" required>
+        {% for category in categories %}
+        <option value="{{ category.id }}" {% if category == product.category %}selected{% endif %}>
+            {{ category.name }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>Suppliers</label>
+    <div class="d-flex flex-wrap gap-2">
+        {% for supplier in suppliers %}
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" name="suppliers" value="{{ supplier.id }}"
+                id="supplier{{ supplier.id }}" {% if supplier in product.suppliers.all %}checked{% endif %} />
+            <label class="form-check-label" for="supplier{{ supplier.id }}">{{ supplier.name }}</label>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row">
+        <div class="col-3">
+            <img src="{{ product.image.url }}" class="w-100" />
+        </div>
+        <div class="col">
+            <input type="file" name="image" class="form-control" />
+        </div>
+    </div>
+
+    <input type="submit" value="Update" class="btn btn-primary mt-3" />
+</form>
+{% endblock %}
