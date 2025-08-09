@@ -3,8 +3,25 @@ from django.http import HttpRequest
 from django.contrib import messages
 from .models import Product, Category, Supplier
 from django.core.paginator import Paginator
-from django.db.models import Q
-
+from django.utils import timezone
+from datetime import timedelta
+from .utils import notify_manager
+from django.db.models import Q, F 
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.mail import send_mail
+from django.conf import settings
+from django.core.mail import send_mail
+from django.conf import settings
+import csv
+from django.http import HttpResponse
+from .models import Product
+from django.db.models import Count, Sum
+from .models import Supplier
+from django.shortcuts import redirect
+import io
+def is_admin(user):
+    return user.is_staff or user.is_superuser
 # -------PRODUCT-------
 
 def create_product_view(request: HttpRequest):
@@ -43,7 +60,7 @@ def product_detail_view(request: HttpRequest, product_id: int):
     product = Product.objects.get(id=product_id)
     return render(request, "inventory/product_detail.html", {"product": product})
 
-
+@user_passes_test(is_admin)
 def update_product_view(request: HttpRequest, product_id: int):
     if not request.user.is_staff:
         messages.warning(request, "Only admin can update products", "alert-warning")
@@ -73,6 +90,7 @@ def update_product_view(request: HttpRequest, product_id: int):
     })
 
 
+@user_passes_test(is_admin)
 def delete_product_view(request: HttpRequest, product_id: int):
     if not request.user.is_staff:
         messages.warning(request, "Only admin can delete products", "alert-warning")
@@ -244,3 +262,149 @@ def supplier_detail_view(request: HttpRequest, supplier_id: int):
         "supplier": supplier,
         "products": products
     })
+
+def update_stock_view(request: HttpRequest, product_id: int):
+    product = Product.objects.get(id=product_id)
+
+    # Allow logged-in users to update stock (per assignment)
+    if not request.user.is_authenticated:
+        messages.error(request, "Only registered users can update stock", "alert-danger")
+        return redirect("accounts:sign_in")
+
+    if request.method == "POST":
+        try:
+            # Two options: set absolute quantity or change by delta
+            if "set_quantity" in request.POST and request.POST["set_quantity"] != "":
+                product.quantity = int(request.POST["set_quantity"])
+            elif "change_by" in request.POST and request.POST["change_by"] != "":
+                delta = int(request.POST["change_by"])
+                new_qty = product.quantity + delta
+                product.quantity = max(0, new_qty)
+
+            # optional: allow updating low_stock_threshold
+            if "low_stock_threshold" in request.POST and request.POST["low_stock_threshold"] != "":
+                product.low_stock_threshold = int(request.POST["low_stock_threshold"])
+
+            product.save()
+            messages.success(request, "Stock updated successfully", "alert-success")
+        except Exception as e:
+            print(e)
+            messages.error(request, "Failed to update stock", "alert-danger")
+
+        return redirect("inventory:product_detail_view", product_id=product.id)
+
+    return render(request, "inventory/update_stock.html", {"product": product})
+
+# ---- Stock status / overview
+def stock_status_view(request: HttpRequest):
+    today = timezone.localdate()
+    expiring_days = int(request.GET.get("expiring_days", 30))
+
+    low_stock_products = Product.objects.filter(quantity__lte=F('low_stock_threshold')).order_by("quantity")
+    expired_products = Product.objects.filter(expiry_date__isnull=False, expiry_date__lt=today).order_by("expiry_date")
+    expiring_soon_products = Product.objects.filter(
+        expiry_date__isnull=False,
+        expiry_date__gte=today,
+        expiry_date__lte=today + timedelta(days=expiring_days)
+    ).order_by("expiry_date")
+
+    return render(request, "inventory/stock_status.html", {
+        "low_stock_products": low_stock_products,
+        "expired_products": expired_products,
+        "expiring_soon_products": expiring_soon_products,
+        "expiring_days": expiring_days
+    })
+
+
+@staff_member_required
+def low_stock_report_view(request):
+    low_stock_products = Product.objects.filter(quantity__lte=5)
+    for product in low_stock_products:
+        send_low_stock_email(product)
+    return render(request, "inventory/low_stock_report.html", {"products": low_stock_products})
+
+
+@staff_member_required
+def out_of_stock_view(request):
+    products = Product.objects.filter(quantity=0)
+    return render(request, 'inventory/out_of_stock.html', {'products': products})
+
+
+
+def send_low_stock_email(product):
+    subject = f"Low Stock Alert: {product.name}"
+    message = f"The stock for product '{product.name}' is low. Only {product.quantity} left in inventory."
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [settings.MANAGER_EMAIL])
+
+def export_products_csv(request):
+    # تحديد نوع الملف واسم التنزيل
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="products.csv"'
+
+    writer = csv.writer(response)
+    # كتابة العناوين
+    writer.writerow(['Name', 'Description', 'Quantity', 'Category', 'Suppliers'])
+
+    # كتابة البيانات
+    for product in Product.objects.all():
+        suppliers_names = ", ".join(s.name for s in product.suppliers.all())
+        writer.writerow([product.name, product.description, product.quantity, product.category.name, suppliers_names])
+
+    return response
+
+def supplier_report_view(request):
+    suppliers = Supplier.objects.annotate(
+        product_count=Count('product', distinct=True),
+        total_qty=Sum('product__quantity')
+    )
+    return render(request, "inventory/supplier_reports.html", {"suppliers": suppliers})
+
+def import_products_csv(request):
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        csv_file = request.FILES["csv_file"]
+        if not csv_file.name.endswith('.csv'):
+            return HttpResponse("Invalid file format", status=400)
+
+        data_set = csv_file.read().decode('UTF-8')
+        io_string = io.StringIO(data_set)
+        next(io_string)  # تخطي العناوين
+
+        for row in csv.reader(io_string, delimiter=',', quotechar="|"):
+            name, description, quantity, category_name, suppliers_names = row
+            from .models import Category, Supplier
+            category, _ = Category.objects.get_or_create(name=category_name)
+            product, created = Product.objects.get_or_create(
+                name=name,
+                defaults={'description': description, 'quantity': int(quantity), 'category': category}
+            )
+            if not created:
+                product.description = description
+                product.quantity = int(quantity)
+                product.category = category
+                product.save()
+
+            supplier_list = suppliers_names.split(",")
+            for supplier_name in supplier_list:
+                supplier, _ = Supplier.objects.get_or_create(name=supplier_name.strip())
+                product.suppliers.add(supplier)
+
+        return redirect("inventory:product_list")
+
+    return HttpResponse("No file uploaded", status=400)
+
+@staff_member_required
+def import_products_page(request):
+    if request.method == "POST":
+        csv_file = request.FILES.get("csv_file")
+        if csv_file.name.endswith('.csv'):
+            data = csv_file.read().decode('utf-8').splitlines()
+            reader = csv.DictReader(data)
+            for row in reader:
+                Product.objects.create(
+                    name=row['name'],
+                    description=row['description'],
+                    quantity=int(row['quantity']),
+                    price=float(row['price'])
+                )
+            return redirect('inventory:all_products_view')
+    return render(request, 'inventory/import_products.html')

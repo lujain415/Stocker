@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+  <body>
+    <h2>Expiry Alert</h2>
+    <p>Product: <strong>{{ product.name }}</strong></p>
+    {% if days_left is not None %}
+      <p>Expires in <strong>{{ days_left }}</strong> day(s) ({{ product.expiry_date }})</p>
+    {% else %}
+      <p>Expiry date: <strong>{{ product.expiry_date }}</strong></p>
+    {% endif %}
+    <p>Current quantity: <strong>{{ product.quantity }}</strong></p>
+    <p><a href="{{ product.get_absolute_url }}">Open product page</a></p>
+    <hr />
+    <p>This is an automated notification from Inventory Plus.</p>
+  </body>
+</html>

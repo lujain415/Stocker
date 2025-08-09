@@ -8,8 +8,11 @@
 <form method="post" enctype="multipart/form-data" class="d-flex flex-column gap-2">
     {% csrf_token %}
     <input type="text" name="name" class="form-control" value="{{ product.name }}" required />
+    
     <textarea name="description" class="form-control">{{ product.description }}</textarea>
+    
     <input type="number" name="quantity" class="form-control" value="{{ product.quantity }}" required />
+    
     <input type="date" name="expiry_date" class="form-control" value="{{ product.expiry_date|date:'Y-m-d' }}" />
 
     <select name="category" class="form-select" required>

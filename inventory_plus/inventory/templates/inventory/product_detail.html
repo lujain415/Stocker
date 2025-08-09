@@ -3,26 +3,36 @@
 {% block title %}{{ product.name }}{% endblock %}
 
 {% block content %}
-<h1>{{ product.name }}</h1>
+<div class="card">
+    {% if product.image %}
+    <img src="{{ product.image.url }}" class="card-img-top" style="max-height: 300px; object-fit: cover;">
+    {% endif %}
+    <div class="card-body">
+        <h3 class="card-title">{{ product.name }}</h3>
+        <p><strong>Description:</strong> {{ product.description }}</p>
+        <p><strong>Quantity:</strong> {{ product.quantity }}</p>
+        <p><strong>Expiry Date:</strong> {{ product.expiry_date|date:"Y-m-d" }}</p>
+        <p><strong>Category:</strong> {{ product.category.name }}</p>
 
-<img src="{{ product.image.url }}" class="w-100 mb-3" style="max-height: 300px; object-fit: cover;" />
-
-<p><strong>Description:</strong> {{ product.description }}</p>
-<p><strong>Quantity:</strong> {{ product.quantity }}</p>
-<p><strong>Expiry Date:</strong> {{ product.expiry_date|date:"Y-m-d" }}</p>
-<p><strong>Category:</strong> {{ product.category.name }}</p>
-
-<p><strong>Suppliers:</strong></p>
-<ul>
+        <p><strong>Suppliers:</strong></p>
+        {% if product.suppliers.exists %}
+    <ul>
     {% for supplier in product.suppliers.all %}
-    <li>{{ supplier.name }}</li>
+        <li>{{ supplier.name }}</li>
     {% endfor %}
-</ul>
-
-{% if request.user.is_staff %}
-<div class="d-flex gap-2">
-    <a href="{% url 'inventory:update_product_view' product.id %}" class="btn btn-primary">Update</a>
-    <a href="{% url 'inventory:delete_product_view' product.id %}" class="btn btn-danger">Delete</a>
-</div>
+    </ul>
+   {% else %}
+    <p>No suppliers assigned.</p>
 {% endif %}
+
+
+        {% if request.user.is_staff %}
+        <div class="d-flex gap-2">
+            <a href="{% url 'inventory:update_product_view' product.id %}" class="btn btn-primary">Update</a>
+            <a href="{% url 'inventory:delete_product_view' product.id %}" class="btn btn-danger">Delete</a>
+            <a href="{% url 'inventory:update_stock_view' product.id %}" class="btn btn-outline-warning">Update Stock</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

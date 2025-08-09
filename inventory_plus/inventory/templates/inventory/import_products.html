@@ -1,0 +1,15 @@
+{% extends 'main/base.html' %}
+
+{% block title %}استيراد المنتجات{% endblock %}
+
+{% block content %}
+<h1>استيراد المنتجات من CSV</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="csv_file" class="form-label">اختر ملف CSV</label>
+        <input type="file" name="csv_file" id="csv_file" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">استيراد</button>
+</form>
+{% endblock %}

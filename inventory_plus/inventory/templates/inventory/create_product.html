@@ -7,9 +7,13 @@
 
 <form method="post" enctype="multipart/form-data" class="d-flex flex-column gap-2">
     {% csrf_token %}
+
     <input type="text" name="name" placeholder="Name" class="form-control" required />
+    
     <textarea name="description" placeholder="Description" class="form-control" required></textarea>
+    
     <input type="number" name="quantity" placeholder="Quantity" min="0" class="form-control" required />
+    
     <input type="date" name="expiry_date" class="form-control" />
 
     <select name="category" class="form-select" required>
@@ -23,8 +27,7 @@
     <div class="d-flex flex-wrap gap-2">
         {% for supplier in suppliers %}
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="suppliers" value="{{ supplier.id }}"
-                id="supplier{{ supplier.id }}">
+            <input class="form-check-input" type="checkbox" name="suppliers" value="{{ supplier.id }}" id="supplier{{ supplier.id }}">
             <label class="form-check-label" for="supplier{{ supplier.id }}">
                 {{ supplier.name }}
             </label>

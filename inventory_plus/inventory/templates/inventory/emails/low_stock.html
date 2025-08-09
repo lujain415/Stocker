@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+  <body>
+    <h2>Low Stock Alert</h2>
+    <p>Product: <strong>{{ product.name }}</strong></p>
+    <p>Current quantity: <strong>{{ product.quantity }}</strong></p>
+    <p>Threshold: <strong>{{ product.low_stock_threshold }}</strong></p>
+    <p><a href="{{ product.get_absolute_url }}">Open product page</a></p>
+    <hr />
+    <p>This is an automated notification from Inventory Plus.</p>
+  </body>
+</html>

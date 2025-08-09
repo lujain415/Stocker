@@ -3,8 +3,32 @@ from django.http import HttpRequest
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from accounts.forms import SignUpForm
+from inventory.utils import notify_manager  # لو utils في inventory
 
-def sign_up(request: HttpRequest):
+def register_user_view(request):
+    if request.method == "POST":
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = True  # مهم عشان يقدر يدخل مباشرة
+            user.save()
+            
+            notify_manager(
+                subject='مستخدم جديد',
+                message=f'تم تسجيل مستخدم جديد: {user.username}'
+            )
+
+            messages.success(request, "تم إنشاء الحساب بنجاح", "alert-success")
+            return redirect("accounts:sign_in")
+    else:
+        form = SignUpForm()
+    
+    return render(request, "accounts/signup.html", {"form": form})
+
+
+
+'''def sign_up(request: HttpRequest):
 
     if request.method == "POST":
         try:
@@ -23,7 +47,7 @@ def sign_up(request: HttpRequest):
 
     return render(request, "accounts/signup.html", {})
 
-
+'''
 def sign_in(request: HttpRequest):
 
     if request.method == "POST":
@@ -42,3 +66,4 @@ def log_out(request: HttpRequest):
     logout(request)
     messages.success(request, "Logged out successfully", "alert-warning")
     return redirect(request.GET.get("next", "/"))
+

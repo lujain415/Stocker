@@ -1,0 +1,23 @@
+{% extends 'main/base.html' %}
+{% block title %}Supplier Reports{% endblock %}
+{% block content %}
+<h1>Supplier Reports</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Supplier</th>
+            <th>Number of Products</th>
+            <th>Total Quantity</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for supplier in suppliers %}
+        <tr>
+            <td>{{ supplier.name }}</td>
+            <td>{{ supplier.product_count }}</td>
+            <td>{{ supplier.total_qty }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

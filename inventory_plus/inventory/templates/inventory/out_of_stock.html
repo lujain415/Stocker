@@ -1,0 +1,25 @@
+{% extends 'main/base.html' %}
+{% block title %}المنتجات المنتهية{% endblock %}
+{% block content %}
+<h2>📦 المنتجات المنتهية</h2>
+{% if products %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>الاسم</th>
+            <th>الفئة</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.name }}</td>
+            <td>{{ product.category.name }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-success">✅ لا يوجد منتجات منتهية حالياً</p>
+{% endif %}
+{% endblock %}

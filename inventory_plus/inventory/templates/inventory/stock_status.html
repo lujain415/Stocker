@@ -1,0 +1,65 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Stock Status{% endblock %}
+
+{% block content %}
+<h1>Stock Status</h1>
+
+<form method="get" class="d-flex gap-2 mb-3">
+  <label class="align-self-center">Expiring within</label>
+  <input type="number" name="expiring_days" value="{{ expiring_days }}" class="form-control" style="width:100px" />
+  <input type="submit" class="btn btn-primary" value="Apply" />
+</form>
+
+<h3>Low Stock Products</h3>
+{% if low_stock_products %}
+  <ul class="list-group mb-3">
+    {% for p in low_stock_products %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <a href="{% url 'inventory:product_detail_view' p.id %}">{{ p.name }}</a>
+          <div class="text-muted">Quantity: {{ p.quantity }} — Threshold: {{ p.low_stock_threshold }}</div>
+        </div>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'inventory:update_stock_view' p.id %}">Update</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="alert alert-info">No low-stock products.</p>
+{% endif %}
+
+<h3>Expiring Soon (within {{ expiring_days }} days)</h3>
+{% if expiring_soon_products %}
+  <ul class="list-group mb-3">
+    {% for p in expiring_soon_products %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <a href="{% url 'inventory:product_detail_view' p.id %}">{{ p.name }}</a>
+          <div class="text-muted">Expiry: {{ p.expiry_date }}</div>
+        </div>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'inventory:update_stock_view' p.id %}">Update</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="alert alert-info">No products expiring soon.</p>
+{% endif %}
+
+<h3>Expired Products</h3>
+{% if expired_products %}
+  <ul class="list-group mb-3">
+    {% for p in expired_products %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <a href="{% url 'inventory:product_detail_view' p.id %}">{{ p.name }}</a>
+          <div class="text-muted">Expired: {{ p.expiry_date }}</div>
+        </div>
+        <a class="btn btn-sm btn-outline-danger" href="{% url 'inventory:update_stock_view' p.id %}">Update</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="alert alert-info">No expired products.</p>
+{% endif %}
+
+{% endblock %}
