@@ -1,0 +1,25 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<h1 style="color: #303972;">Suppliers</h1>
+<a href="{% url 'inventory:create_supplier_view' %}" class="btn btn-primary mb-3">Add Supplier</a>
+
+<div class="row">
+{% for supplier in suppliers %}
+  <div class="col-md-4">
+    <div class="card">
+      <img src="{{ supplier.logo.url }}" alt="{{ supplier.name }}"
+ class="card-img-top" style="height:150px; object-fit:cover;">
+      <div class="card-body">
+        <h5>{{ supplier.name }}</h5>
+        <p>Email: {{ supplier.email }}</p>
+        <p>Phone: {{ supplier.phone }}</p>
+        <a href="{% url 'inventory:supplier_detail_view' supplier.id %}" class="btn btn-sm btn-outline-info">View</a>
+        <a href="{% url 'inventory:update_supplier_view' supplier.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+        <a href="{% url 'inventory:delete_supplier_view' supplier.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

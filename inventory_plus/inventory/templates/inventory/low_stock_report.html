@@ -1,16 +1,17 @@
 {% extends 'main/base.html' %}
-{% block title %}تقرير المخزون المنخفض{% endblock %}
+{% block title %}Low Stock Report{% endblock %}
 
 {% block content %}
-<h2>📉 تقرير المخزون المنخفض</h2>
+<h2 style="color: #303972;">Low Stock Report</h2>
 
 {% if products %}
 <table class="table table-bordered">
     <thead>
         <tr>
-            <th>اسم المنتج</th>
-            <th>الكمية</th>
-            <th>الفئة</th>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Category</th>
+            <th>Suppliers</th>
         </tr>
     </thead>
     <tbody>
@@ -19,11 +20,18 @@
             <td>{{ product.name }}</td>
             <td>{{ product.quantity }}</td>
             <td>{{ product.category.name }}</td>
+            <td>
+                {% for supplier in product.suppliers.all %}
+                    {{ supplier.name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    None
+                {% endfor %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<div class="alert alert-success">🎉 جميع المنتجات مخزونها جيد!</div>
+<div class="alert alert-success">All products have sufficient stock!</div>
 {% endif %}
 {% endblock %}

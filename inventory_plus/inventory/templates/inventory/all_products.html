@@ -1,62 +1,121 @@
 {% extends 'main/base.html' %}
 
-{% block title %}All Products{% endblock %}
+{% block title %}Products Dashboard{% endblock %}
 
 {% block content %}
-<h1>All Products</h1>
+<h1 class="mb-4" style="color: #303972;">Products Dashboard</h1>
 
-<div class="row row-cols-1 row-cols-md-3 g-4 mt-2">
- {% for product in products %}
-<div class="col">
-    <div class="card h-100 p-2">
-        <img src="{{ product.image.url }}" class="card-img-top" style="height:200px; object-fit:cover" />
-        
-        <div class="card-body">
-            <h5 class="card-title">{{ product.name }}</h5>
-            <p class="text-muted">Category: {{ product.category.name }}</p>
-            <p>Quantity: 
-                {% if product.quantity == 0 %}
-                    <span class="badge bg-danger">Out of Stock</span>
-                {% elif product.quantity < 5 %}
-                    <span class="badge bg-warning">Low Stock</span>
-                {% else %}
-                    <span class="badge bg-success">{{ product.quantity }}</span>
-                {% endif %}
-            </p>
-            {% if product.expiry_date %}
-                <p>Expiry: {{ product.expiry_date }}</p>
-            {% endif %}
-            <p class="card-text">{{ product.description|truncatechars:100 }}</p>
-
-            <a href="{% url 'inventory:product_detail_view' product.id %}" class="btn btn-sm btn-outline-primary">View</a>
-            
-            {% if user.is_superuser %}
-                <a href="{% url 'inventory:update_product_view' product.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                <a href="{% url 'inventory:delete_product_view' product.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
-            {% endif %}
+{% if user.is_superuser %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-bg-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Products</h5>
+                <h3>{{ total_products }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-warning">
+            <div class="card-body text-center">
+                <h5 class="card-title">Low Stock Products</h5>
+                <h3>{{ low_stock_count }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-danger">
+            <div class="card-body text-center">
+                <h5 class="card-title">Out of Stock Products</h5>
+                <h3>{{ out_of_stock_count }}</h3>
+            </div>
         </div>
     </div>
 </div>
-{% endfor %}
 
+<div style="max-width: 400px; margin: auto;">
+    <canvas id="productsPieChart"></canvas>
 </div>
 
-<div class="d-flex justify-content-center mt-4">
-    <nav>
-        <ul class="pagination">
-            {% if products.has_previous %}
-            <li class="page-item"><a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a></li>
-            {% endif %}
-            <li class="page-item active"><a class="page-link">{{ products.number }}</a></li>
-            {% if products.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ products.next_page_number }}">Next</a></li>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('productsPieChart');
 
-            {% endif %}
-        </ul>
-    </nav>
-    {% if user.is_staff %}
-    <a href="{% url 'inventory:create_product_view' %}" class="btn btn-primary">Add Product</a>
+    const chartData = {
+        labels: JSON.parse('{{ pie_labels|escapejs }}'),
+        datasets: [{
+            label: 'Top Products by Quantity',
+            data: JSON.parse('{{ pie_values|escapejs }}'),
+            backgroundColor: [
+                '#198754',
+                '#0d6efd',
+                '#ffc107',
+                '#dc3545',
+                '#6c757d'
+            ]
+        }]
+    };
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
 {% endif %}
 
+<div class="row row-cols-1 row-cols-md-3 g-4 mt-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100">
+            <img src="{{ product.image.url }}" class="card-img-top" style="height:200px; object-fit:cover" alt="{{ product.name }}">
+            <div class="card-body">
+                <h5>{{ product.name }}</h5>
+                <p class="text-muted">Category: {{ product.category.name }}</p>
+                <p>
+                    {% if product.quantity == 0 %}
+                        <span class="badge bg-danger">Out of Stock</span>
+                    {% elif product.quantity < product.low_stock_threshold %}
+                        <span class="badge bg-warning">Low Stock</span>
+                    {% else %}
+                        <span class="badge bg-success">{{ product.quantity }}</span>
+                    {% endif %}
+                </p>
+                <p><strong>{{ product.price }} SAR</strong></p>
+                {% if product.expiry_date %}
+                    <p>Expiry: {{ product.expiry_date }}</p>
+                {% endif %}
+                <p>{{ product.description|truncatechars:100 }}</p>
+            </div>
+            <div class="card-footer d-flex gap-2">
+                <a href="{% url 'inventory:product_detail_view' product.id %}" class="btn btn-sm btn-primary">View</a>
+                <a href="{% url 'inventory:update_product_view' product.id %}" class="btn btn-sm btn-secondary">Edit</a>
+                {% if user.is_superuser %}
+                    <a href="{% url 'inventory:delete_product_view' product.id %}" class="btn btn-sm btn-danger">Delete</a>
+                
+                    
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
+
+<div class="d-flex justify-content-center mt-4 gap-2">
+    {% if products.has_previous %}
+        <a class="btn btn-outline-secondary" href="?page={{ products.previous_page_number }}">Previous</a>
+    {% endif %}
+    <span class="btn btn-outline-primary disabled">Page {{ products.number }}</span>
+    {% if products.has_next %}
+        <a class="btn btn-outline-secondary" href="?page={{ products.next_page_number }}">Next</a>
+    {% endif %}
+</div>
+
+<div class="d-flex justify-content-end mt-3">
+    <a href="{% url 'inventory:create_product_view' %}" class="btn btn-primary">Add Product</a>
+</div>
+
 {% endblock %}

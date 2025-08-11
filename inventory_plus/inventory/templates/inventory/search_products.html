@@ -3,11 +3,17 @@
 {% block title %}Search Results{% endblock %}
 
 {% block content %}
-<h1>Search Results</h1>
+<h1 style="color: #303972;">Search Results</h1>
+<form method="get" action="{% url 'inventory:search_products_view' %}" class="mb-4">
+    <div class="input-group">
+        <input type="text" name="search" class="form-control" placeholder="Search for a product..." value="{{ request.GET.search }}">
+        <button class="btn btn-primary" style="background-color: #4D44B5;" type="submit">Search</button>
+    </div>
+</form>
 
 {% if products %}
-<p>{{ products|length }} result(s) found for "{{ request.GET.search }}"</p>
-{% include 'inventory/all_products.html' %}
+<p>{{ products|length }} result(s) for "{{ request.GET.search }}"</p>
+{% include 'inventory/products_list_partial.html' %}
 {% else %}
 <p class="alert alert-warning">No results found for "{{ request.GET.search }}"</p>
 {% endif %}

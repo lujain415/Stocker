@@ -1,0 +1,18 @@
+{% extends "main/base.html" %}
+
+{% block title %}Create Supplier{% endblock %}
+
+{% block content %}
+<h1 style="color: #303972;">Add New Supplier</h1>
+
+<form method="post" enctype="multipart/form-data" class="d-flex flex-column gap-2">
+    {% csrf_token %}
+    {{ form.name }}
+    {{ form.logo }}
+    {{ form.email }}
+    {{ form.phone }}
+    {{ form.website }}
+
+    <button type="submit" class="btn btn-primary mt-2">Save</button>
+</form>
+{% endblock %}

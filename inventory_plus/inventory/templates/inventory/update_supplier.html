@@ -1,0 +1,10 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+<h1 style="color: #303972;">Update Supplier</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% endblock %}

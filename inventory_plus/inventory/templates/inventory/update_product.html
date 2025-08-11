@@ -3,7 +3,7 @@
 {% block title %}Update {{ product.name }}{% endblock %}
 
 {% block content %}
-<h1>Update Product</h1>
+<h1 style="color: #303972;">Update Product</h1>
 
 <form method="post" enctype="multipart/form-data" class="d-flex flex-column gap-2">
     {% csrf_token %}
@@ -12,7 +12,8 @@
     <textarea name="description" class="form-control">{{ product.description }}</textarea>
     
     <input type="number" name="quantity" class="form-control" value="{{ product.quantity }}" required />
-    
+    <input type="number" name="price" class="form-control" value="{{ product.price }}" step="0.01" min="0" required />
+
     <input type="date" name="expiry_date" class="form-control" value="{{ product.expiry_date|date:'Y-m-d' }}" />
 
     <select name="category" class="form-select" required>

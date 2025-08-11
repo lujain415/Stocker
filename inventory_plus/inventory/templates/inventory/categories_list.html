@@ -3,7 +3,7 @@
 {% block title %}All Categories{% endblock %}
 
 {% block content %}
-<h1>All Categories</h1>
+<h1 style="color: #303972;">All Categories</h1>
 
 {% if request.user.is_staff %}
     <a href="{% url 'inventory:create_category_view' %}" class="btn btn-success mb-3">Add Category</a>

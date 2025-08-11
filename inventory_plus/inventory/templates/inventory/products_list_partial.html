@@ -1,0 +1,22 @@
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4">
+        <div class="card mb-3">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">{{ product.description|default:"No description available" }}</p>
+                <p class="card-text"><small class="text-muted">{{ product.category.name }}</small></p>
+                
+                <a href="{% url 'inventory:product_detail_view' product.id %}" class="btn btn-sm btn-info">View</a>
+                <a href="{% url 'inventory:update_product_view' product.id %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'inventory:delete_product_view' product.id %}" class="btn btn-sm btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="alert alert-warning">No products available</p>
+    {% endfor %}
+</div>

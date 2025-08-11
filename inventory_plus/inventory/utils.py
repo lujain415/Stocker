@@ -4,7 +4,6 @@ from django.conf import settings
 
 
 def notify_manager(subject, message):
-    """إرسال إشعار نصي بسيط للمدير."""
     send_mail(
         subject=subject,
         message=message,
@@ -15,8 +14,7 @@ def notify_manager(subject, message):
 
 
 def send_stock_alert(product, alert_type):
-    """إرسال إشعار HTML عند انخفاض المخزون أو قرب انتهاء الصلاحية."""
-    subject = f"تنبيه المخزون: {product.name}"
+    subject = f"Stock Alert: {product.name}"
     message = render_to_string('inventory/emails/stock_alert.html', {
         'product': product,
         'alert_type': alert_type,
@@ -28,5 +26,5 @@ def send_stock_alert(product, alert_type):
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[settings.MANAGER_EMAIL]
     )
-    email.content_subtype = "html"  # يخلي الرسالة HTML
+    email.content_subtype = "html"
     email.send()

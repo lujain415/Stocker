@@ -5,7 +5,8 @@
 {% block content %}
 <div class="card">
     {% if product.image %}
-    <img src="{{ product.image.url }}" class="card-img-top" style="max-height: 300px; object-fit: cover;">
+    <img src="{{ product.image.url }}" alt="{{ product.name }}"
+ class="card-img-top" style="max-height: 300px; object-fit: cover;">
     {% endif %}
     <div class="card-body">
         <h3 class="card-title">{{ product.name }}</h3>
@@ -24,15 +25,18 @@
    {% else %}
     <p>No suppliers assigned.</p>
 {% endif %}
-
-
-        {% if request.user.is_staff %}
         <div class="d-flex gap-2">
-            <a href="{% url 'inventory:update_product_view' product.id %}" class="btn btn-primary">Update</a>
-            <a href="{% url 'inventory:delete_product_view' product.id %}" class="btn btn-danger">Delete</a>
-            <a href="{% url 'inventory:update_stock_view' product.id %}" class="btn btn-outline-warning">Update Stock</a>
-        </div>
-        {% endif %}
+    
+        <a href="{% url 'inventory:update_product_view' product.id %}" class="btn btn-primary">Update</a>
+   
+
+    {% if request.user.is_superuser %}
+        <a href="{% url 'inventory:delete_product_view' product.id %}" class="btn btn-danger">Delete</a>
+    {% endif %}
+
+    <a href="{% url 'inventory:update_stock_view' product.id %}" class="btn btn-outline-warning">Update Stock</a>
+</div>
+
     </div>
 </div>
 {% endblock %}
