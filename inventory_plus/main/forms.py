@@ -1,4 +1,4 @@
-from django import forms
+'''from django import forms
 
 class SaleForm(forms.Form):
-    quantity = forms.IntegerField(min_value=1, label="Quantity")
+    quantity = forms.IntegerField(min_value=1, label="Quantity")'''
